@@ -1,9 +1,8 @@
 ## Topics Covered:
 
 * Structure and Logic of relational databases
-* Queries
-* Subqueries
-* Table relationships and joins
+* Queries & Subqueries
+* Table relationships & joins
 * Common table expressions
 * Window functions
-* Connecting to databases in R
+* Connecting R to databases
