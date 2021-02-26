@@ -75,4 +75,8 @@ vignettes/*.pdf
 # R package: bookdown caching files
 /*_files/
 
+<<<<<<< HEAD
 # End of https://www.toptal.com/developers/gitignore/api/r,macos
+=======
+# End of https://www.toptal.com/developers/gitignore/api/r,macos
+>>>>>>> 6af11ae2e810e9927aedabd7b8cbc75d5df57267
