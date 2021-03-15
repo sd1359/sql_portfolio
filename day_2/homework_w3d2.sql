@@ -89,7 +89,45 @@ INNER JOIN teams AS t
 HAVING COUNT(e.id) * CAST(t.charge_cost AS INT) > 5000;
 
 
+-- 8. How many of the employees serve on one or more committees? --
 
+SELECT 
+  COUNT(DISTINCT(employee_id)) AS num_employees_on_committees
+FROM employees_committees
+
+--9. How many of the employees do not serve on a committee? --
+
+SELECT 
+  COUNT(*) AS num_not_in_committees
+FROM employees e
+LEFT JOIN employees_committees ec
+ON e.id = ec.employee_id 
+WHERE ec.employee_id IS NULL
+
+-- 10. Get the full employee details (including committee name) of any committee members based in China. --
+
+SELECT 
+  e.*, 
+  c.name AS committee_name
+FROM employees AS e INNER JOIN employees_committees AS ec
+ON e.id = ec.employee_id
+INNER JOIN committees AS c
+ON ec.committee_id = c.id
+WHERE e.country = 'China'
+
+--11. Group committee members into the teams in which they work, counting the number of committee members in each team (including teams with no committee members). Order the list by the number of committee members, highest first. --
+
+SELECT 
+  t.name AS team_name, 
+  COUNT(DISTINCT(e.id)) AS num_committee_members
+FROM employees AS e INNER JOIN employees_committees AS ec
+ON e.id = ec.employee_id
+INNER JOIN committees AS c
+ON ec.committee_id = c.id
+RIGHT JOIN teams AS t
+ON e.team_id = t.id
+GROUP BY t.name
+ORDER BY num_committee_members DESC NULLS LAST
 
 
 
