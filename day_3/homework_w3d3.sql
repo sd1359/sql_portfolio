@@ -7,6 +7,7 @@ iban
 FROM pay_details
 WHERE  local_account_no IS NULL AND iban IS NULL;
 
+
 -- 2. Get a table of employees first_name, last_name and country, 
 -- ordered alphabetically first by country and then by last_name (put any NULLs last).
 
@@ -50,6 +51,15 @@ count(id),
 pension_enrol
 FROM employees
 GROUP BY pension_enrol;
+
+-- Showing the number of employees who have enrolled in a pension or not. 
+-- Making blank cells state "unknown".
+
+SELECT 
+  COALESCE(CAST(pension_enrol AS VARCHAR), 'unknown') AS pension_enrolled, 
+  COUNT(id) AS num_employees
+FROM employees
+GROUP BY pension_enrol
 
 -- 7. What is the maximum salary among those employees in the ‘Engineering’ 
 -- department who work 1.0 full-time equivalent hours (fte_hours)?
@@ -191,3 +201,67 @@ WHERE department = (
 -- the fact that two or more departments may be tied in their counts of employees. 
 -- In that case, we probably don’t want to arbitrarily return details for 
 -- employees in just one of these departments].
+
+SELECT 
+    id, 
+    first_name, 
+    last_name, 
+    department,
+    salary,
+    fte_hours,
+    salary / AVG(salary) OVER (PARTITION BY department) AS salary_over_dept_avg,
+    fte_hours / AVG(fte_hours) OVER (PARTITION BY department) AS fte_hours_over_dept_avg
+FROM employees
+WHERE department = (
+  SELECT
+    department
+  FROM employees
+  GROUP BY department
+  HAVING COUNT(id) = (
+      SELECT
+          MAX(count)
+      FROM (
+          SELECT
+              department,
+              COUNT(id)
+          FROM employees 
+          GROUP BY department
+      ) AS temp
+  )
+);
+
+-- Find the first name, last name, email address and start date of all the 
+-- employees who are members of the ‘Equality and Diversity’ committee. 
+-- Order the member employees by their length of service in the company, 
+-- longest first.
+
+SELECT 
+  e.first_name, 
+  e.last_name, 
+  e.email, 
+  e.start_date
+FROM 
+employees AS e INNER JOIN employees_committees AS ec
+ON e.id = ec.employee_id
+INNER JOIN committees AS c
+ON ec.committee_id = c.id
+WHERE c.name = 'Equality and Diversity'
+ORDER BY e.start_date ASC NULLS LAST
+
+-- Use a CASE() operator to group employees who are members of committees into 
+-- salary_class of 'low' (salary < 40000) or 'high' (salary >= 40000). 
+-- A NULL salary should lead to 'none' in salary_class. Count the number of 
+-- committee members in each salary_class.
+
+SELECT 
+  CASE 
+    WHEN e.salary < 40000 THEN 'low'
+    WHEN e.salary IS NULL THEN 'none'
+    ELSE 'high' 
+  END AS salary_class,
+  COUNT(DISTINCT(e.id)) AS num_committee_members
+FROM employees AS e INNER JOIN employees_committees AS ec
+ON e.id = ec.employee_id
+INNER JOIN committees AS c
+ON ec.committee_id = c.id
+GROUP BY salary_class
